@@ -1,0 +1,16 @@
+[Unit]
+Description=IHazSpam MailExtractor
+Requires=postgresql.service
+
+[Service]
+ExecStart=/usr/bin/dotnet /ihazspam/bin/MailExtractor/MailExtractor.dll
+WorkingDirectory=/ihazspam
+Restart=always
+RestartSec=10
+SyslogIdentifier=IHazSpamMailExtractor
+User=www-data
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="IHAZSPAM_JSON_CONFIG_FILE=/ihazspam/stuff/ihazspam-linux.config.json"
+
+[Install]
+WantedBy=multi-user.target

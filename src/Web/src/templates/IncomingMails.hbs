@@ -1,0 +1,17 @@
+﻿{{#if Mails}}
+<div id="IncomingMailsContent" style="border: solid 1px gray; border-radius: 0.5em;">
+	{{#each Mails}}
+	<div onclick="openMail({{this.Id}});" class="ihazspam_incomingmail">
+		<img src="/images/black/svg/envelope.svg" class="svg_icon_small" /><b>{{this.Sender}}</b><br/><span style="margin-left: 2em">{{localDateAndTime this.ReceivedOn}}</span><br /><span style="margin-left: 2em">{{this.Subject}}</span>
+	</div>
+	{{#unless @last}}
+	<div style="border-top: solid 1px gray"></div>
+	{{/unless}}
+	{{/each}}
+</div>
+{{else}}
+<div class="ui info message">
+	You have no emails.
+</div>
+{{/if}}
+<div style="height: 1.5em"></div>

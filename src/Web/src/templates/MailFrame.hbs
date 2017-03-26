@@ -1,0 +1,41 @@
+﻿<table style="width: 100%">
+	<colgroup>
+		<col />
+		<col style="width: 100%" />
+	</colgroup>
+	<tr>
+		<td style="white-space: nowrap; padding-right: 1em; vertical-align: top"><b>From:</b></td>
+		<td style="vertical-align: top">{{SelectedMail.Sender}}</td>
+	</tr>
+	<tr>
+		<td style="white-space: nowrap; padding-right: 1em; vertical-align: top"><b>Date:</b></td>
+		<td style="vertical-align: top">{{localDateAndTime SelectedMail.ReceivedOn}}</td>
+	</tr>
+	<tr>
+		<td style="white-space: nowrap; padding-right: 1em; vertical-align: top"><b>Subject:</b></td>
+		<td style="vertical-align: top">{{SelectedMail.Subject}}</td>
+	</tr>
+	{{#if SelectedMail.Attachments}}
+	<tr>
+		<td style="white-space: nowrap; padding-right: 1em; vertical-align: top; padding-top: 1.5em"><b>Attachments:</b></td>
+		<td style="vertical-align: top; padding-top: 1.5em">
+			{{#each SelectedMail.Attachments}}
+			<a href="/m/{{../Mailbox.Token}}/{{../SelectedMail.Id}}/attachments/{{this.FileName}}"
+			   class="ui mini blue button"
+			   style="margin-bottom: 0.25em; margin-right: 0.5em; min-width: 12em; text-align: left">
+				{{this.OriginalFileName}}
+			</a>
+			{{/each}}
+		</td>
+	</tr>
+	{{/if}}
+</table>
+
+<hr />
+<iframe id="MailFrame" src="{{Url}}" scrolling="no" frameBorder="0"></iframe>
+
+<hr />
+<button class="ui positive button" onclick="returnFromMail({{SelectedMailIndex}});">
+	Return
+</button>
+<div style="height: 2em"></div>

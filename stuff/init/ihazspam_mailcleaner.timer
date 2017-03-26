@@ -1,0 +1,8 @@
+[Unit]
+Description=Run IHazSpam MailCleaner every 10 minutes
+
+[Timer]
+OnUnitActiveSec=10min
+
+[Install]
+WantedBy=timers.target

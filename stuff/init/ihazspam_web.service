@@ -1,0 +1,16 @@
+[Unit]
+Description=IHazSpam Web
+Requires=postgresql.service
+
+[Service]
+ExecStart=/usr/bin/dotnet /ihazspam/bin/Web/Web.dll
+WorkingDirectory=/ihazspam/bin/Web/wwwroot
+Restart=always
+RestartSec=10
+SyslogIdentifier=IHazSpamWeb
+User=www-data
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="IHAZSPAM_JSON_CONFIG_FILE=/ihazspam/stuff/ihazspam-linux.config.json"
+
+[Install]
+WantedBy=multi-user.target

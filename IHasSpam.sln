@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C2B24687-FFD8-40BF-B1F5-1A185F9601EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0033C72C-B3DE-4E47-990D-72BF1896F27A}"
+	ProjectSection(SolutionItems) = preProject
+		stuff\bootstrap.txt = stuff\bootstrap.txt
+		global.json = global.json
+		stuff\ihazspam-linux.config.json = stuff\ihazspam-linux.config.json
+		stuff\ihazspam-windows.config.json = stuff\ihazspam-windows.config.json
+		stuff\init\ihazspam_letsencrypt.service = stuff\init\ihazspam_letsencrypt.service
+		stuff\init\ihazspam_letsencrypt.timer = stuff\init\ihazspam_letsencrypt.timer
+		stuff\init\ihazspam_mailcleaner.service = stuff\init\ihazspam_mailcleaner.service
+		stuff\init\ihazspam_mailcleaner.timer = stuff\init\ihazspam_mailcleaner.timer
+		stuff\init\ihazspam_mailextractor.service = stuff\init\ihazspam_mailextractor.service
+		stuff\init\ihazspam_mx.service = stuff\init\ihazspam_mx.service
+		stuff\init\ihazspam_web.service = stuff\init\ihazspam_web.service
+		stuff\schema.sql = stuff\schema.sql
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MX", "src\MX\MX.xproj", "{FC70AD38-22D4-4B64-8309-3C3DA2D79806}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Common", "src\Common\Common.xproj", "{3D583272-2B8E-40EB-A7B5-B63612BA799C}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MailExtractor", "src\MailExtractor\MailExtractor.xproj", "{743CA7AA-2723-4ABB-BD96-9374D60C62D5}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Web", "src\Web\Web.xproj", "{B991854C-EA11-47BA-829F-79150EE5C279}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MailCleaner", "src\MailCleaner\MailCleaner.xproj", "{93E78DBC-763F-42E9-8578-C6D526E04046}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC70AD38-22D4-4B64-8309-3C3DA2D79806}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC70AD38-22D4-4B64-8309-3C3DA2D79806}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC70AD38-22D4-4B64-8309-3C3DA2D79806}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC70AD38-22D4-4B64-8309-3C3DA2D79806}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D583272-2B8E-40EB-A7B5-B63612BA799C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D583272-2B8E-40EB-A7B5-B63612BA799C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D583272-2B8E-40EB-A7B5-B63612BA799C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D583272-2B8E-40EB-A7B5-B63612BA799C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{743CA7AA-2723-4ABB-BD96-9374D60C62D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{743CA7AA-2723-4ABB-BD96-9374D60C62D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{743CA7AA-2723-4ABB-BD96-9374D60C62D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{743CA7AA-2723-4ABB-BD96-9374D60C62D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B991854C-EA11-47BA-829F-79150EE5C279}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B991854C-EA11-47BA-829F-79150EE5C279}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B991854C-EA11-47BA-829F-79150EE5C279}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B991854C-EA11-47BA-829F-79150EE5C279}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93E78DBC-763F-42E9-8578-C6D526E04046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93E78DBC-763F-42E9-8578-C6D526E04046}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93E78DBC-763F-42E9-8578-C6D526E04046}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93E78DBC-763F-42E9-8578-C6D526E04046}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FC70AD38-22D4-4B64-8309-3C3DA2D79806} = {C2B24687-FFD8-40BF-B1F5-1A185F9601EC}
+		{3D583272-2B8E-40EB-A7B5-B63612BA799C} = {C2B24687-FFD8-40BF-B1F5-1A185F9601EC}
+		{743CA7AA-2723-4ABB-BD96-9374D60C62D5} = {C2B24687-FFD8-40BF-B1F5-1A185F9601EC}
+		{B991854C-EA11-47BA-829F-79150EE5C279} = {C2B24687-FFD8-40BF-B1F5-1A185F9601EC}
+		{93E78DBC-763F-42E9-8578-C6D526E04046} = {C2B24687-FFD8-40BF-B1F5-1A185F9601EC}
+	EndGlobalSection
+EndGlobal

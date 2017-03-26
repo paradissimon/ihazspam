@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /mailbox.html
+Disallow: /m
+Disallow: /api
+

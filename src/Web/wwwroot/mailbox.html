@@ -1,0 +1,482 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="free mail, temp mail, disposable mail, temporary mail, free email, temp email, disposable email, temporary email">
+    <meta name="description" content="IHazSpam is a free temporary email service to help prevent spam">
+    <meta name="language" content="English">
+	<meta http-equiv="Content-Security-Policy" content="frame-src 'self'">
+	<title>IHazSpam - Disposable temporary email address</title>
+	<script src="pack/ihazspam.js" async></script>
+	<link rel="stylesheet" href="pack/ihazspam.css">
+	<link rel="manifest" href="/manifest.webmanifest">
+
+	<link rel="apple-touch-icon" sizes="57x57" href="/icon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/icon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/icon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/icon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/icon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/icon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/icon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/icon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/icon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="/icon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="/icon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="/icon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+
+	<style type="text/css">
+		iframe {
+			margin: 0;
+			padding: 0;
+			border: none;
+			width: 100%;
+		}
+
+		#MainView.hideMainView {
+			display: none;
+		}
+	</style>
+</head>
+<body style="padding-top: 4.5em;" onload="initialize();">
+	<div class="ui fixed inverted violet menu">
+		<div class="ui container">
+			<a href="/index.html" class="header item">
+                <img src="/images/white/svg/envelope-o.svg" class="svg_icon_big" />IHazSpam
+			</a>
+			<div class="ui simple right aligned dropdown item">
+				Help
+				<div class="menu">
+					<a class="item" href="/about.html">What is this ?</a>
+					<div class="divider"></div>
+					<a class="item" href="/contact.html">Contact us</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="ui container">
+		<div id="MainView">
+			<div id="Mailbox"></div>
+			<div id="IncomingMails"></div>
+		</div>
+		<div id="MailContentView"></div>
+	</div>
+
+	<script type="text/javascript">
+		var CONTENT_TYPE = "Content-Type";
+		var APPLICATION_JSON = "application/json";
+
+		var g_clipboard = null;
+		var g_incomingMailsTimer = null;
+		var g_mailboxTimer = null;
+
+		var MailboxEvent = {
+			Loading: 1,
+			Creating: 2,
+			Loaded: 3,
+			Created: 4
+		}
+
+		var state = {};
+		state.Mailbox = null;
+		state.MailboxFailure = false;
+		state.IncomingMails = null;
+		state.SelectedMail = null;
+		state.PreservedScrollPosition = 0;
+		state.CheckDelay = 30;
+		state.CheckCountDown = 0;
+
+
+		function getQueryString(name) {
+			name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+			var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+			var results = regex.exec(location.search);
+			return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+		}
+
+
+		function initialize() {
+			if (history) {
+				window.onpopstate = handlePopState;
+			}
+
+			Handlebars.registerHelper('localDateAndTime', function (jsonDate) {
+				var dt = new Date(jsonDate);
+				var month = ((dt.getMonth() + 1) < 10 ? "0" : "") + (dt.getMonth() + 1);
+				var day = (dt.getDate() < 10 ? "0" : "") + dt.getDate();
+				var hh = (dt.getHours() < 10 ? "0" : "") + dt.getHours();
+				var mm = (dt.getMinutes() < 10 ? "0" : "") + dt.getMinutes();
+				return dt.getFullYear() + "-" + month + "-" + day + " " + hh + ":" + mm;
+			});
+
+			var mailboxToken = getQueryString("m");
+			if (mailboxToken && mailboxToken.length === 36) {
+				state.Mailbox = getStoredMailbox(mailboxToken)
+				if (state.Mailbox == null) {
+					loadMailbox(mailboxToken);
+				} else {
+					refreshMailbox(MailboxEvent.Loaded);
+				}
+			} else {
+				createMailbox();
+			}
+		}
+
+
+		function handlePopState(e) {
+			// user pressed browser back instead of green go back button
+			if (state.SelectedMail) {
+				e.preventDefault();
+				closeMail();
+			}
+			return false;
+		}
+
+
+		function isRequestFailure(xhr) {
+			if (xhr.readyState === 4 && xhr.status === 0) {
+				return true;
+			}
+			if (xhr.readyState === 4 && xhr.status >= 400) {
+				return true;
+			}
+			return false;
+		}
+
+
+		function isRequestOk(xhr) {
+			if (xhr.readyState === 4 && xhr.status === 200) {
+				return true;
+			}
+			return false;
+		}
+
+
+		function getStoredMailbox(mailboxToken) {
+			var json = null;
+			var mbox = null;
+			try {
+				if (localStorage) {
+					json = localStorage.getItem('mailbox-' + mailboxToken.toLowerCase());
+				}
+				if (json) {
+					mbox = JSON.parse(json);
+				}
+			}
+			catch (e) {
+				mbox = null;
+			}
+			return mbox;
+		}
+
+
+		function createMailbox() {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 1) {
+					state.Mailbox = null;
+					state.MailboxFailure = false;
+					state.IncomingMails = null;
+					state.SelectedMail = null;
+					refreshMailbox(MailboxEvent.Creating);
+				}
+
+				if (isRequestFailure(xhr)) {
+					state.MailboxFailure = true;
+					refreshMailbox(MailboxEvent.Created);
+				}
+
+				if (isRequestOk(xhr)) {
+					state.Mailbox = JSON.parse(xhr.responseText);
+					try {
+						if (localStorage) {
+							localStorage.setItem('mailbox-' + state.Mailbox.Token.toLowerCase(), JSON.stringify(state.Mailbox, null, 2));
+						}
+					} catch (e) {
+					}
+
+					if (history && history.replaceState) {
+						history.replaceState(null, "", "?m=" + state.Mailbox.Token.toLowerCase())
+						refreshMailbox(MailboxEvent.Created);
+					} else {
+						location.href = "/mailbox.html?m=" + state.Mailbox.Token.toLowerCase();
+					}
+				}
+			};
+
+			xhr.open('POST', '/api/Mailbox/CreateMailAccount', true);
+			xhr.setRequestHeader(CONTENT_TYPE, APPLICATION_JSON);
+			xhr.send();
+		}
+
+
+		function loadMailbox(mailboxToken) {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 1) {
+					state.Mailbox = null;
+					state.MailboxFailure = false;
+					state.IncomingMails = null;
+					state.SelectedMail = null;
+					refreshMailbox(MailboxEvent.Loading);
+				}
+
+				if (isRequestFailure(xhr)) {
+					state.MailboxFailure = true;
+					refreshMailbox(MailboxEvent.Loaded);
+				}
+
+				if (isRequestOk(xhr)) {
+					state.Mailbox = JSON.parse(xhr.responseText);
+					try {
+						if (localStorage) {
+							localStorage.setItem('mailbox-' + state.Mailbox.Token.toLowerCase(), JSON.stringify(state.Mailbox, null, 2));
+						}
+					} catch (e) {
+					}
+
+					refreshMailbox(MailboxEvent.Loaded);
+				}
+			};
+
+			xhr.open('GET', '/api/Mailbox/GetMailAccount?m=' + mailboxToken, true);
+			xhr.setRequestHeader(CONTENT_TYPE, APPLICATION_JSON);
+			xhr.send();
+		}
+
+
+		function handlePeriodMailboxRefresh() {
+			refreshIncomingMails(MailboxEvent.Loaded);
+		}
+
+
+		function refreshMailbox(ev) {
+			if (g_clipboard) {
+				g_clipboard.destroy();
+				g_clipboard = null;
+			}
+
+			var Mailbox = document.getElementById('Mailbox');
+			var IncomingMails = document.getElementById('IncomingMails');
+
+			if (ev == MailboxEvent.Loading) {
+				Mailbox.innerHTML = Templates.Info({ isFailure: false, message: "Loading your email account..." });
+			} else if (ev == MailboxEvent.Creating) {
+				Mailbox.innerHTML = Templates.Info({ isFailure: false, message: "Creating your email account..." });
+			} else if (ev == MailboxEvent.Loaded && state.MailboxFailure == true) {
+			    Mailbox.innerHTML = Templates.Info({ isFailure: true, message: "Could not load this email account, it might be expired." });
+			} else if (ev == MailboxEvent.Created && state.MailboxFailure == true) {
+			    Mailbox.innerHTML = Templates.Info({ isFailure: true, message: "Could not create your mailbox. Try again later." });
+			} else if (state.Mailbox && state.MailboxFailure == false) {
+				var utcNow = new Date();
+				expiresOn = new Date(state.Mailbox.ExpiresOn);
+				if (expiresOn <= utcNow) {
+					// Show expired
+				    Mailbox.innerHTML = Templates.Info({ isFailure: true, message: "Your " + state.Mailbox.Address + " email account is not longer accessible because it expired." });
+				    IncomingMails.innerHTML = '';
+					if (g_mailboxTimer) {
+						clearInterval(g_mailboxTimer);
+						g_mailboxTimer = null;
+					}
+					if (localStorage) {
+						localStorage.clear();
+					}
+				} else {
+					// Show mailbox
+				    Mailbox.innerHTML = Templates.Mailbox(state);
+					g_clipboard = new Clipboard('#copyEmailToClipboard');
+					refreshIncomingMails();
+					try {
+						if (localStorage) {
+							localStorage.setItem('last-mailbox-token', state.Mailbox.Token.toLowerCase());
+						}
+					} catch (e) {
+					}
+					if (g_mailboxTimer == null) {
+						g_mailboxTimer = setInterval(handlePeriodMailboxRefresh, 1 * 60 * 1000)
+					}
+				}
+			} else {
+				var data = { isFailure: true, message: "Internal client-side error: invalid state." };
+				Mailbox.innerHTML = Templates.Info(data);
+			}
+		}
+
+
+		function fetchIncomingMails(onSuccess, onFailure) {
+			var url;
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function () {
+				if (isRequestFailure(xhr)) {
+					onFailure();
+				}
+
+				if (isRequestOk(xhr)) {
+					onSuccess(JSON.parse(xhr.responseText));
+				}
+			};
+
+			url = '/m/' + state.Mailbox.Token + '/mails.json';
+			xhr.open('GET', url, true);
+			xhr.send();
+		}
+
+
+		function handleCheckCountDown(doNotDrop) {
+			if (doNotDrop) {
+			} else {
+				state.CheckCountDown--;
+			}
+
+			if (state.CheckCountDown <= 0) {
+			    document.getElementById('checkCountDown').innerHTML = "Refreshing...";
+				refreshIncomingMails();
+			} else {
+				msg = "Refreshing in " + state.CheckCountDown + " seconds"
+				document.getElementById('checkCountDown').innerHTML = msg;
+			}
+		}
+
+
+		function refreshIncomingMails() {
+			if (state.IncomingMails == null) {
+			    document.getElementById('IncomingMails').innerHTML = Templates.Info({ isFailure: false, message: "Loading your emails..." });
+			}
+
+			if (g_incomingMailsTimer) {
+				clearInterval(g_incomingMailsTimer);
+				g_incomingMailsTimer = null;
+			}
+
+			fetchIncomingMails(
+				function (mails) {
+					state.CheckCountDown = state.CheckDelay;
+					handleCheckCountDown(true);
+					if (g_incomingMailsTimer == null) {
+						g_incomingMailsTimer = setInterval(handleCheckCountDown, 1000);
+					}
+
+					if (state.IncomingMails != null && state.IncomingMails.length > 0) {
+						appendIncomingMails(mails.slice(state.IncomingMails.length));
+						state.IncomingMails = mails;
+					} else {
+						renderIncomingMails(mails);
+						state.IncomingMails = mails;
+					}
+				},
+				function () {
+					state.CheckCountDown = state.CheckDelay;
+					handleCheckCountDown(true);
+					if (g_incomingMailsTimer == null) {
+						g_incomingMailsTimer = setInterval(handleCheckCountDown, 1000);
+					}
+
+					document.getElementById('IncomingMails').innerHTML = Templates.Info({ isFailure: false, message: "You have no emails. Your inbox will automatically refresh itself every " + state.CheckDelay + " seconds." });
+				}
+			);
+		}
+
+
+		function renderIncomingMails(mails) {
+		    document.getElementById('IncomingMails').innerHTML = Templates.IncomingMails({ Mails: mails });
+		}
+
+
+		function appendIncomingMails(mails) {
+		    var e;
+		    if (mails.length > 0) {
+		        e = document.getElementById('IncomingMailsContent');
+			    e.innerHTML += Templates.IncomingMailsNew({ Mails: mails });
+			}
+		}
+
+
+		function openMail(mailId) {
+			var i;
+			var mailIndex = -1;
+			for (i = 0; i < state.IncomingMails.length; i++) {
+				if (state.IncomingMails[i].Id == mailId) {
+					mailIndex = i;
+					break;
+				}
+			}
+
+			if (mailIndex == -1) {
+				return;
+			}
+
+			if (history) {
+				history.pushState({}, "");
+			}
+
+			// do not check mail in the background (it works but is wastefull)
+			if (g_incomingMailsTimer) {
+				clearInterval(g_incomingMailsTimer)
+				g_incomingMailsTimer = null;
+			}
+
+			var MainView = document.getElementById('MainView');
+			var MailContentView = document.getElementById('MailContentView');
+			state.SelectedMail = state.IncomingMails[mailIndex];
+			state.PreservedScrollPosition = document.scrollTop;
+			MainView.className = 'hideMainView';
+
+			var data = {
+				Mailbox: state.Mailbox,
+				SelectedMail: state.SelectedMail,
+				SelectedMailIndex: mailIndex,
+				Url: "/m/" + state.Mailbox.Token + "/" + state.SelectedMail.Id + "/mail.html",
+			};
+
+			MailContentView.innerHTML = Templates.MailFrame(data);
+			iFrameResize({ log: false, heightCalculationMethod: 'lowestElement' }, document.getElementById('MailFrame'));
+		}
+
+
+		function returnFromMail(mailIndex) {
+			if (history) {
+				history.back();
+			} else {
+				closeMail(mailIndex);
+			}
+		}
+
+		function closeMail() {
+			if (g_incomingMailsTimer == null) {
+				g_incomingMailsTimer = setInterval(handleCheckCountDown, 1000);
+			}
+
+			// dispose iframe resizer
+			var iframe = document.getElementById('MailFrame');
+			if (iframe && iframe.iFrameResizer) {
+				iframe.iFrameResizer.close();
+			}
+
+			document.getElementById('MailContentView').innerHTML = '';
+			document.getElementById('MainView').className = '';
+			document.scrollTop = state.PreservedScrollPosition;
+
+			state.SelectedMail = null;
+			state.PreservedScrollPosition = 0;
+		}
+	</script>
+
+	<script>
+		(function (i, s, o, g, r, a, m) {
+			i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+				(i[r].q = i[r].q || []).push(arguments)
+			}, i[r].l = 1 * new Date(); a = s.createElement(o),
+			m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+		})(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+		ga('create', 'UA-89465382-1', 'auto');
+		ga('send', 'pageview');
+
+	</script>
+</body>
+</html>

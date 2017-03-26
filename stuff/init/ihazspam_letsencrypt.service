@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew Let's Encrypt SSL certificate
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/systemctl stop nginx.service
+ExecStart=/usr/bin/letsencrypt renew
+ExecStartPost=/bin/systemctl start nginx.service
+SyslogIdentifier=LetsEncrypt
+User=root

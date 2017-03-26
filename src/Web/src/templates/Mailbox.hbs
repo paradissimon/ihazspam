@@ -1,0 +1,9 @@
+﻿<h3 style="padding:0;margin:0;">
+	<a href="mailto:{{Mailbox.Address}}">{{Mailbox.Address}}</a>
+</h3>
+<div style="font-size: 75%; color: gray; margin: 0">
+	Expires on {{localDateAndTime Mailbox.ExpiresOn}}
+</div>
+<button id="copyEmailToClipboard" class="ui mini blue button" data-clipboard-text="{{Mailbox.Address}}">Copy email address to clipboard</button>
+<div id="checkCountDown" style="font-size: 75%; color: gray; margin-top: 1em; height: 1.25em"></div>
+<div style="height: 1em"></div>

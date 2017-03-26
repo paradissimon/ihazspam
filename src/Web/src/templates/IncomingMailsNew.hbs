@@ -1,0 +1,7 @@
+﻿{{!-- mails are appended --}}
+{{#each Mails}}
+<div style="border-top: solid 1px gray"></div>
+<div onclick="openMail({{this.Id}});" class="ihazspam_incomingmail">
+    <img src="/images/black/svg/envelope.svg" class="svg_icon_small" /><b>{{this.Sender}}</b><br /><span style="margin-left: 2em">{{localDateAndTime this.ReceivedOn}}</span><br /><span style="margin-left: 2em">{{this.Subject}}</span>
+</div>
+{{/each}}

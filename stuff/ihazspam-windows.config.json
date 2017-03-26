@@ -1,0 +1,7 @@
+﻿{
+  "TimeToLiveInMinutes": 1440,
+  "MailDomains": [ "ihazspam.ca" ],
+  "DatabaseConnectionString": "Host=localhost;Database=ihazspam;Username=ihazspam;Password=ihazspampwd;Pooling=true;Keepalive=60",
+  "IncomingMailDirectory": "C:\\TEMP\\incoming-mails",
+  "MailboxDirectory": "C:\\TEMP\\mailboxes"
+}

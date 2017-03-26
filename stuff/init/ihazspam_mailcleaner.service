@@ -1,0 +1,12 @@
+[Unit]
+Description=IHazSpam MailCleaner
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dotnet /ihazspam/bin/MailCleaner/MailCleaner.dll
+WorkingDirectory=/ihazspam
+SyslogIdentifier=IHazSpamMailCleaner
+User=www-data
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="IHAZSPAM_JSON_CONFIG_FILE=/ihazspam/stuff/ihazspam-linux.config.json"

@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew Let's Encrypt SSL certificate
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=3600
+Persistent=true
+
+[Install]
+WantedBy=timers.target
